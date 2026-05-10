@@ -26,18 +26,22 @@ io.on("connection", (socket) => {
 
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
-  socket.on("discount", () => {
+  socket.on("disconnect", () => {
     console.log("User Disconnected", userId);
-    delete userSocketMap[userId];
-    io.emit("getOnlineUsers", Object.keys(userSocketMap))
+    if (userId) delete userSocketMap[userId];
+    io.emit("getOnlineUsers", Object.keys(userSocketMap));
   })
 })
 //Middleware setup
 app.use(express.json({ limit: "4mb" }));
 app.use(cors());
 
-// Correct health-check route: must include leading slash and use a verb
+// Health-check and root handlers
 app.get('/api/status', (req, res) => res.send("Server is live"));
+app.get('/', (req, res) => res.send('Server is live - API available at /api'));
+
+// Favicon handlers to avoid 404 noise from platforms that request it
+app.get(['/favicon.ico', '/favicon.png'], (req, res) => res.status(204).end());
 app.use('/api/auth', userRouter);
 app.use('/api/messages', messageRouter);
 
